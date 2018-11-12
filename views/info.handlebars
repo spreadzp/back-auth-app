@@ -1,0 +1,13 @@
+<h1>Info User</h1>
+{{#if tokenUser}}
+<script type="text/javascript" async>
+    const token = '{{tokenUser}}';
+    localStorage.setItem("token", token)
+</script>
+
+<div class="card card-body mb-2">
+    <h4>id: {{idUser}}</h4>
+    <h4>type id: {{typeId}}</h4>
+    <h4>token: {{tokenUser}}</h4>
+</div>
+{{/if}}

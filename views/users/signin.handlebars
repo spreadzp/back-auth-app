@@ -1,0 +1,30 @@
+<div class="row">
+  <div class="col-md-6 mx-auto">
+    <div class="card card-body">
+      <img class="logo" src="/img/logo.png">
+      <h3 class="text-center">Account Login</h3>
+      <form method="post" action="/users/signin">
+        <div class="form-group">
+          <label for="phone" id="phoneLabel">Enter your phone number in format: 01234-123-45-67</label>
+          <input type="tel" id="phone" name="phone" class="form-control" pattern="[0-9]{5}-[0-9]{3}-[0-9]{2}-[0-9]{2}"
+            disabled="false">
+        </div>
+        <div class="form-group">
+          <label for="email" id="emailLabel">email</label>
+          <input type="email" name="email" id="email" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="password">password</label>
+          <input type="password" name="password" class="form-control" value="{{password}}" required>
+        </div>
+        <label id="typeIdLabel">type Id : email
+        </label>
+        <label class="btn btn-primary">
+          <input type="checkbox" name="typeId" id="typeId" value="phone" class="sr-only"> change type Id
+        </label>
+        <input type="hidden" name="typeUserId" value="email">
+    <button type="submit" class="btn btn-primary">Signin</button>
+    </form>
+  </div>
+</div>
+</div>
