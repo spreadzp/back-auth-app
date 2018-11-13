@@ -4,9 +4,13 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const tokenList = {}
 
 require('dotenv').config();
-const secret = process.env.SECRETSESSION || 'some other secret as default';
+const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
+const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'some refresh secret as default';
+const tokenLife = +process.env.TOKEN_LIFE || 600;
+const refreshTokenLife = +process.env.REFRESH_TOKEN_LIFE || 600;
 
 // Load User Model
 require('../models/User');
@@ -31,47 +35,71 @@ router.get('/signup', (req, res) => {
   })(req, res, next);
 }); */
 
-router.post('/signin', (req,res) => {
+router.post('/signin', (req, res) => {
+  console.log('req.body :', req.body);
   const errors = {};
   const userId = req.body.idUser;
-  const password = req.body.password; 
+  const password = req.body.password;
   console.log(req.body);
-  User.findOne({ idUser: userId })
-       .then(user => {
-          if (!user) {
-             errors.userId = "No Account Found";
-             return res.status(404).json(errors);
-         }
-         bcrypt.compare(password, user.password)
-                .then(isMatch => {
-                   if (isMatch) {
-                     const payload = {
-                      idUser: user.idUser,
-                      password: user.password
-                    };
-                    jwt.sign(payload, secret, { expiresIn: 600 },
-                            (err, token) => {
-                              if (err) {
-                                res.status(500)
-                              .json({ error: "Error signing token",
-                                     raw: err }); 
-                              }
-                              res.render('info', {
-                                errors: errors,
-                                idUser: user.idUser,
-                                typeId: user.typeId,
-                                tokenUser: `Bearer ${token}`
-                              })
-                              /*  res.json({ 
-                               success: true,
-                               token: `Bearer ${token}` }); */
-                    });      
-              } else {
-                  errors.password = "Password is incorrect";                        
-                  res.status(400).json(errors);
+  User.findOne({
+      idUser: userId
+    })
+    .then(user => {
+      if (!user) {
+        errors.userId = "No Account Found";
+        return res.status(404).json(errors);
       }
+      bcrypt.compare(password, user.password)
+        .then(isMatch => {
+          if (isMatch) {
+            const payload = {
+              idUser: user.idUser,
+              password: user.password
+            };
+
+
+
+            jwt.sign(payload, tokenSecret, {
+                expiresIn: tokenLife
+              },
+              (err, token) => {
+                if (err) {
+                  res.status(500)
+                    .json({
+                      error: "Error signing token",
+                      raw: err
+                    });
+                }
+                jwt.sign(payload, refreshTokenSecret, {
+                    expiresIn: refreshTokenLife
+                  },
+                  (err, validRefreshToken) => {
+                    if (err) {
+                      res.status(500)
+                        .json({
+                          error: "Error signing token",
+                          raw: err
+                        });
+                    }
+                    const response = {
+                      errors: errors,
+                      idUser: user.idUser,
+                      typeId: user.typeId,
+                      tokenUser: `Bearer ${token}`,
+                      refreshToken: validRefreshToken,
+                      status: "Logged in"
+                    }
+                    tokenList[validRefreshToken] = response;
+                    res.render('info', response)
+                  }
+                )
+              });
+          } else {
+            errors.password = "Password is incorrect";
+            res.status(400).json(errors);
+          }
+        });
     });
-  });
 });
 
 
@@ -80,15 +108,19 @@ router.post('/signup', (req, res) => {
   console.log('?????', req.body);
   let errors = [];
 
-  if(req.body.password != req.body.password2){
-    errors.push({text:'Passwords do not match'});
+  if (req.body.password != req.body.password2) {
+    errors.push({
+      text: 'Passwords do not match'
+    });
   }
 
-  if(req.body.password.length < 4){
-    errors.push({text:'Password must be at least 4 characters'});
+  if (req.body.password.length < 4) {
+    errors.push({
+      text: 'Password must be at least 4 characters'
+    });
   }
 
-  if(errors.length > 0){
+  if (errors.length > 0) {
     res.render('users/signup', {
       errors: errors,
       idUser: req.body.idUser,
@@ -97,9 +129,11 @@ router.post('/signup', (req, res) => {
       password2: req.body.password2
     });
   } else {
-    User.findOne({idUser: req.body.idUser})
+    User.findOne({
+        idUser: req.body.idUser
+      })
       .then(user => {
-        if(user){
+        if (user) {
           req.flash('error_msg', 'Email already regsitered');
           res.redirect('/users/signup');
         } else {
@@ -108,10 +142,10 @@ router.post('/signup', (req, res) => {
             typeId: req.body.typeUserId,
             password: req.body.password
           });
-          
+
           bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(newUser.password, salt, (err, hash) => {
-              if(err) throw err;
+              if (err) throw err;
               newUser.password = hash;
               newUser.save()
                 .then(user => {

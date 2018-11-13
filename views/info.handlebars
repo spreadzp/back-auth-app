@@ -2,12 +2,15 @@
 {{#if tokenUser}}
 <script type="text/javascript" async>
     const token = '{{tokenUser}}';
+    const refToken = '{{refreshToken}}';
     localStorage.setItem("token", token)
+    localStorage.setItem("refToken", refToken)
 </script>
 
 <div class="card card-body mb-2">
     <h4>id: {{idUser}}</h4>
     <h4>type id: {{typeId}}</h4>
     <h4>token: {{tokenUser}}</h4>
+    <h4>refreshToken: {{refreshToken}}</h4>
 </div>
 {{/if}}

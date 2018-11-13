@@ -3,13 +3,17 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { ensureAuthenticated } = require('../helpers/auth');
-const config = require('../config/secret'); // get config file
+// const config = require('../config/secret'); // get config file
+require('dotenv').config();
+const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
+
 
 // Load User Model
 require('../models/User');
 const User = mongoose.model('users');
 
 router.get('/', ensureAuthenticated, (req, res) => {
+  const newToken = checkAndUpdateToken(req);
   let errors = [];
   const userData = req.user._doc;
   console.log('userData :', userData);
@@ -17,7 +21,7 @@ router.get('/', ensureAuthenticated, (req, res) => {
   // create a token
   const token = jwt.sign({
     id: userData._id
-  }, config.secret, {
+  }, tokenSecret, {
     expiresIn: 600 // expires in 10 min
   });
   console.log('token :', token);
@@ -27,5 +31,25 @@ router.get('/', ensureAuthenticated, (req, res) => {
     typeId: userData.typeId
   })
 });
+
+checkAndUpdateToken = (req) => {
+  const postData = req.body
+  // if refresh token exists
+  if ((postData.refreshToken) && (postData.refreshToken in tokenList)) {
+    const user = {
+      "email": postData.email,
+      "name": postData.name
+    }
+    const token = jwt.sign(user, config.secret, {
+      expiresIn: config.tokenLife
+    })
+    const response = {
+      "token": token,
+    }
+    // update the token in the list
+    tokenList[postData.refreshToken].token = token;
+    return response;
+  }
+}
 
 module.exports = router;

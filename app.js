@@ -15,6 +15,7 @@ const app = express();
 const ideas = require('./routes/ideas');
 const users = require('./routes/users');
 const info = require('./routes/info');
+const latency = require('./routes/latency');
 
 // Passport Config
 require('./config/passport')(passport);
@@ -22,7 +23,7 @@ require('./config/passport')(passport);
 const db = require('./config/database');
 
 require('dotenv').config();
-const secret = process.env.SECRETSESSION || 'some other secret as default';
+const secret = process.env.SECRETSESSION || 'some other secret sesion as default';
 
 // Map global promise - get rid of warning
 mongoose.Promise = global.Promise;
@@ -80,9 +81,9 @@ app.get('/', (req, res) => {
   });
 }); 
 
-app.get('/latency', (req, res) => {
+/* app.get('/latency', (req, res) => {
   res.render('latency');
-});
+}); */
 
 app.get('/logout', (req, res) => {
   res.render('logout');
@@ -92,5 +93,6 @@ app.get('/logout', (req, res) => {
 app.use('/ideas', ideas);
 app.use('/users', users);
 app.use('/info', info);
+app.use('/latency', latency);
 
 module.exports = app;

@@ -1,3 +1,9 @@
 <h1>Latency</h1>
-<p>This is a Node/Express app for working with yours ideas</p>
-<p>Version: 1.0.0</p>
+{{#if latency}} 
+
+<div class="card card-body mb-2">
+    <h4>host : {{host}} ms</h4> 
+    <h4>numeric host: {{numeric_host}} ms</h4> 
+    <h4>latency : {{latency}} ms</h4> 
+</div>
+{{/if}} 
