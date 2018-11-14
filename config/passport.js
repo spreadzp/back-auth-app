@@ -15,7 +15,7 @@ module.exports = passport => {
   passport.use(
       new Strategy(opts,(id, password, done) => {
         // Match user
-        console.log(id + password)
+        console.log('!!!!!!!!!!!!!',id + password)
         User.findOne({
           idUser: id,
         }).then(user => {

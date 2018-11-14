@@ -28,12 +28,12 @@
     crossorigin="anonymous"></script>
   <script type="text/javascript">
     var userTypeId = $('#' + 'typeUserId');
-    var checkBoxTypeId = $('#typeId');    
+    var checkBoxTypeId = $('#typeId');
     if (checkBoxTypeId) {
       console.log(checkBoxTypeId);
       userTypeId.val(checkBoxTypeId.value);
       checkBoxTypeId.on('change', function (event, state) {
-        var nameId = '#' + event.target.defaultValue;
+        // var nameId = '#' + event.target.defaultValue;
         var enabledInput = event.target.defaultValue;
         var disabledInput = enabledInput === 'email' ? 'phone' : 'email';
         var labelText = enabledInput === 'email' ? 'email' : 'Enter your phone number in format: 01234-123-45-67';
@@ -54,6 +54,15 @@
         activeInput.attr('name', 'idUser');
         blockInput.attr('name', 'id-block');
       });
+    }
+    $('#signForm').on('submit', function () {
+      userTypeId.val(checkBoxTypeId.value);
+      console.log('@@@@', checkBoxTypeId.val(), userTypeId.val())
+    })
+    console.log("onclick=window.location=", window.location)
+    const tokenFromLocalStorage = localStorage.getItem('token').split(' ');
+    function redirectInfo(path) {
+      window.location.replace(window.location.origin + `${path}/?token=${tokenFromLocalStorage[1]}`);
     }
 
   </script>

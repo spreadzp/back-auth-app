@@ -4,13 +4,14 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const tokenList = {}
 
 require('dotenv').config();
+const verifyJWT_MW = require('./../middlewares/verifierJwt');
 const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'some refresh secret as default';
 const tokenLife = +process.env.TOKEN_LIFE || 600;
 const refreshTokenLife = +process.env.REFRESH_TOKEN_LIFE || 600;
+const tokenList = {}
 
 // Load User Model
 require('../models/User');
@@ -54,10 +55,9 @@ router.post('/signin', (req, res) => {
           if (isMatch) {
             const payload = {
               idUser: user.idUser,
+              typeId: user.typeId,
               password: user.password
             };
-
-
 
             jwt.sign(payload, tokenSecret, {
                 expiresIn: tokenLife
@@ -91,6 +91,7 @@ router.post('/signin', (req, res) => {
                     }
                     tokenList[validRefreshToken] = response;
                     res.render('info', response)
+                    // res.redirect('/info', response);
                   }
                 )
               });
@@ -164,8 +165,8 @@ router.post('/signup', (req, res) => {
 });
 
 // Logout User
-router.get('/logout', (req, res) => {
-  req.logout();
+router.get('/logout', verifyJWT_MW, (req, res) => {
+  //req.logout();
   req.flash('success_msg', 'You are logged out');
   res.redirect('/users/signin');
 });

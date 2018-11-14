@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const mongoose = require('mongoose');
 const cors = require("cors");
+const MongoStore = require('connect-mongo')(session);
 
 const app = express();
 
@@ -16,6 +17,7 @@ const ideas = require('./routes/ideas');
 const users = require('./routes/users');
 const info = require('./routes/info');
 const latency = require('./routes/latency');
+const verifyJWT_MW = require('./middlewares/verifierJwt');
 
 // Passport Config
 require('./config/passport')(passport);
@@ -23,7 +25,7 @@ require('./config/passport')(passport);
 const db = require('./config/database');
 
 require('dotenv').config();
-const secret = process.env.SECRETSESSION || 'some other secret sesion as default';
+const secretSession = process.env.SECRETSESSION || 'some other secret sesion as default';
 
 // Map global promise - get rid of warning
 mongoose.Promise = global.Promise;
@@ -52,11 +54,21 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(methodOverride('_method'));
 
 // Express session midleware
-app.use(session({
+app.use(session({ 
+  secret: secretSession, 
+  saveUninitialized: true,
+  resave: true,
+  // using store session on MongoDB using express-session + connect
+  store: new MongoStore({
+    url: db.mongoURI,
+    collection: 'sessions'
+  })
+}));
+/* app.use(session({
   secret: secret,
   resave: true,
   saveUninitialized: true
-}));
+})); */
 
 // Passport middleware
 app.use(passport.initialize());
@@ -66,6 +78,7 @@ app.use(flash());
 
 // Global variables
 app.use(function(req, res, next){
+  // res.set('X-XSS-Protection', 0);
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
@@ -94,5 +107,6 @@ app.use('/ideas', ideas);
 app.use('/users', users);
 app.use('/info', info);
 app.use('/latency', latency);
+//app.all('*', verifyJWT_MW);
 
 module.exports = app;

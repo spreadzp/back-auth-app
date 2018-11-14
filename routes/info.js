@@ -6,25 +6,26 @@ const { ensureAuthenticated } = require('../helpers/auth');
 // const config = require('../config/secret'); // get config file
 require('dotenv').config();
 const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
-
+const verifyJWT_MW = require('./../middlewares/verifierJwt');
 
 // Load User Model
 require('../models/User');
 const User = mongoose.model('users');
 
-router.get('/', ensureAuthenticated, (req, res) => {
-  const newToken = checkAndUpdateToken(req);
+router.get('/', verifyJWT_MW, (req, res) => {
+  // 
+  // const newToken = checkAndUpdateToken(req);
   let errors = [];
-  const userData = req.user._doc;
-  console.log('userData :', userData);
+  const userData = req.user;
+  console.log('rereq :',req);
   // if user is found and password is valid
   // create a token
-  const token = jwt.sign({
+/*   const token = jwt.sign({
     id: userData._id
   }, tokenSecret, {
     expiresIn: 600 // expires in 10 min
-  });
-  console.log('token :', token);
+  }); */
+  // console.log('token :', token);
   res.render('info', {
     errors: errors,
     idUser: userData.idUser,

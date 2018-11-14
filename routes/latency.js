@@ -5,19 +5,16 @@ const jwt = require('jsonwebtoken');
 const {
     ensureAuthenticated
 } = require('../helpers/auth');
-// const config = require('../config/secret'); // get config file
-require('dotenv').config();
-var ping = require('ping');
-
+const verifyJWT_MW = require('./../middlewares/verifierJwt');
+const ping = require('ping');
 
 const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
-
 
 // Load User Model
 require('../models/User');
 const User = mongoose.model('users');
 
-router.get('/', (req, res) => {
+router.get('/', verifyJWT_MW, (req, res) => {
     //const newToken = checkAndUpdateToken(req);
     let errors = [];
     //const userData = req.user._doc; 

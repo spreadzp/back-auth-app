@@ -1,19 +1,22 @@
 
-import { verifyJWTToken } from './../helper/verifierToken'
+const verifyJWTToken = require('./../helpers/verifierToken.js');
 
-export function verifyJWT_MW(req, res, next)
+module.exports = (req, res, next) =>
 {
+  console.log(req)
+  console.log('!!!req :', req.headers.authorization);
   let token = (req.method === 'POST') ? req.body.token : req.query.token
 
   verifyJWTToken(token)
     .then((decodedToken) =>
     {
-      req.user = decodedToken.data
+      console.log('decodedToken :', decodedToken);
+      req.user = decodedToken
       next()
     })
     .catch((err) =>
     {
-      res.status(400)
-        .json({message: "Invalid auth token provided."})
+      req.flash('error_msg', 'Not Authorized');
+      res.redirect('/users/signin');
     })
 }
