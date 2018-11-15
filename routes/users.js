@@ -2,21 +2,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
-var Redis = require('ioredis');
-var redis = new Redis({
+const Redis = require('ioredis');
+const redis = new Redis({
   port: 6379, // Redis port
   host: '127.0.0.1', // Redis host
   family: 4, // 4 (IPv4) or 6 (IPv6)
   password: 'auth',
   db: 0
 })
-var JWTR = require('jwt-redis');
-var jwtr = new JWTR(redis);
-
+const JWTR = require('jwt-redis');
 require('dotenv').config();
+const jwtr = new JWTR(redis);
+
+
 const verifyJWT_MW = require('./../middlewares/verifierJwt');
-const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
-const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'some refresh secret as default';
+const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default'; 
 const tokenLife = +process.env.TOKEN_LIFE || 600;
 
 // Load User Model
@@ -34,11 +34,9 @@ router.get('/signup', (req, res) => {
 });
 
 router.post('/signin', (req, res) => {
-  console.log('req.body :', req.body);
   const errors = {};
   const userId = req.body.idUser;
   const password = req.body.password;
-  console.log(req.body);
   User.findOne({
       idUser: userId
     })
@@ -86,8 +84,7 @@ router.post('/signin', (req, res) => {
 
 
 // Register Form POST
-router.post('/signup', (req, res) => {
-  console.log('?????', req.body);
+router.post('/signup', (req, res) => { 
   let errors = [];
 
   if (req.body.password != req.body.password2) {
@@ -106,7 +103,7 @@ router.post('/signup', (req, res) => {
     res.render('users/signup', {
       errors: errors,
       idUser: req.body.idUser,
-      typeId: req.body.typeUserId,
+      typeId: req.body.typeId,
       password: req.body.password,
       password2: req.body.password2
     });
@@ -121,7 +118,7 @@ router.post('/signup', (req, res) => {
         } else {
           const newUser = new User({
             idUser: req.body.idUser,
-            typeId: req.body.typeUserId,
+            typeId: req.body.typeId,
             password: req.body.password
           });
 
@@ -147,9 +144,7 @@ router.post('/signup', (req, res) => {
 
 // Logout User
 router.get('/logout', verifyJWT_MW, (req, res) => {
-  //req.logout();
   const tokenLogout = req.user.prewToken;
-  console.log('tokenLogout :', tokenLogout);
   jwtr.destroy(tokenLogout, (err, decode) => {
     if (err) {
       res.status(500)
@@ -158,11 +153,9 @@ router.get('/logout', verifyJWT_MW, (req, res) => {
           raw: err
         });
     }
-    console.log('decode :', decode);
     req.flash('success_msg', 'You are logged out');
     res.redirect('/users/signin');
   })
-
 });
 
 module.exports = router;

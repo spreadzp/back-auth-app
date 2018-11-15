@@ -29,18 +29,17 @@
   <script type="text/javascript">
     var userTypeId = $('#' + 'typeUserId');
     var checkBoxTypeId = $('#typeId');
+    var selectedType;
+    var tokenLocalStorage = localStorage.getItem('token').split(' ')[1];
     if (checkBoxTypeId) {
-      console.log(checkBoxTypeId);
-      userTypeId.val(checkBoxTypeId.value);
       checkBoxTypeId.on('change', function (event, state) {
-        // var nameId = '#' + event.target.defaultValue;
         var enabledInput = event.target.defaultValue;
+        selectedType = enabledInput;
         var disabledInput = enabledInput === 'email' ? 'phone' : 'email';
         var labelText = enabledInput === 'email' ? 'email' : 'Enter your phone number in format: 01234-123-45-67';
-
+        userTypeId.val(enabledInput);
         var activeInput = $('#' + enabledInput);
         var blockInput = $('#' + disabledInput);
-        userTypeId.val(enabledInput);
         activeInput.prop('disabled', false);
         activeInput.prop('required', true);
         blockInput.prop('disabled', true);
@@ -55,14 +54,39 @@
         blockInput.attr('name', 'id-block');
       });
     }
-    $('#signForm').on('submit', function () {
-      userTypeId.val(checkBoxTypeId.value);
-      console.log('@@@@', checkBoxTypeId.val(), userTypeId.val(), checkBoxTypeId.value)
+
+    function redirectEditPage(idIdea) {
+      var newPath = window.location.origin + `?id=${idIdea}&token=${tokenLocalStorage}`;
+      window.location.replace(newPath);
+    }
+
+    $('#ideaEditForm').on('submit', function () {
+      var input = $('<input>').attr('type', 'hidden').attr('name', 'token').val(tokenLocalStorage);
+      $(this).append($(input));
     })
-    console.log("onclick=window.location=", window.location)
-    const tokenFromLocalStorage = localStorage.getItem('token').split(' ');
+
+    $('#ideaForm').on('submit', function () {
+      var input = $('<input>').attr('type', 'hidden').attr('name', 'token').val(tokenLocalStorage);
+      $(this).append($(input));
+    })
+
+    $('#signUpForm').on('submit', function () {
+        var choiseType = $('#typeId').val();
+        var opositeInput = choiseType === 'email' ? 'phone' : 'email';
+        var activeInput = $('#' + choiseType);
+        activeInput.attr('name', 'idUser');
+      console.log(opositeInput)
+      var input = $('<input>').attr('type', 'hidden').attr('required', 'true').attr('name', 'typeId').val(opositeInput);
+      $(this).append($(input));
+    })
+
+    $('#signForm').on('submit', function () {
+      var input = $('<input>').attr('type', 'hidden').attr('name', 'token').val(tokenLocalStorage);
+      $(this).append($(input));
+    })
+
     function redirectPage(path, parameter) {
-      var newPath = window.location.origin + `${path}/?token=${tokenFromLocalStorage[1]}${parameter}`;
+      var newPath = window.location.origin + `${path}/?token=${tokenLocalStorage}${parameter}`;
       window.location.replace(newPath);
     }
   </script>

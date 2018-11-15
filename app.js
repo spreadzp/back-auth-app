@@ -81,10 +81,6 @@ app.get('/', (req, res) => {
   });
 }); 
 
-/* app.get('/logout', (req, res) => {
-  res.render('logout');
-}); */
-
 // Use routes
 app.use('/ideas', ideas);
 app.use('/users', users);

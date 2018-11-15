@@ -3,13 +3,11 @@ const verifyJWTToken = require('./../helpers/verifierToken.js');
 
 module.exports = (req, res, next) =>
 {
-  console.log(req)
-  let token = (req.method === 'POST') ? req.body.token : req.query.token
+  let token = (req.method === 'GET') ? req.query.token : req.body.token ;
 
   verifyJWTToken(token)
     .then((decodedToken) =>
     {
-      console.log('decodedToken :', decodedToken);
       req.user = decodedToken
       next()
     })

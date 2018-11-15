@@ -1,14 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router(); 
+const verifyJWT_MW = require('./../middlewares/verifierJwt');
 
-// Load Idea Model
+// Load Models
 require('../models/Idea');
 const Idea = mongoose.model('ideas');
+require('../models/User');
+const User = mongoose.model('users');
 
+const getIdUser = async (userCredential) => {
+  const id = User.findOne({idUser: userCredential})
+  .then(user => user.id);
+  return await id;
+}
 // Idea Index Page
-router.get('/', (req, res) => {
-  Idea.find({user: req.user.id})
+router.get('/', verifyJWT_MW, async (req, res) => {
+  const id = await getIdUser(req.user.idUser); 
+  Idea.find({user: id})
     .sort({date:'desc'})
     .then(ideas => {
       res.render('ideas/index', {
@@ -28,20 +37,21 @@ router.get('/edit/:id', (req, res) => {
     _id: req.params.id
   })
   .then(idea => {
-    if(idea.user != req.user.id){
+    if(idea.id != req.params.id){
       req.flash('error_msg', 'Not Authorized');
       res.redirect('/ideas');
     } else {
       res.render('ideas/edit', {
         idea:idea
       });
-    }
-    
+    }    
   });
 });
 
 // Process Form
-router.post('/', (req, res) => {
+router.post('/', verifyJWT_MW, async (req, res) => {
+  const id = await getIdUser(req.user.idUser);
+  req.user.id = id;
   let errors = [];
 
   if(!req.body.title){
@@ -58,23 +68,22 @@ router.post('/', (req, res) => {
       details: req.body.details
     });
   } else {
-    console.log('req :', req);
     const newUser = {
       title: req.body.title,
       details: req.body.details,
-      user: req.user.id
+      user: id
     }
     new Idea(newUser)
       .save()
       .then(idea => {
         req.flash('success_msg', 'Idea added');
-        res.redirect('/ideas');
+        res.redirect(`/ideas/?token=${req.user.prewToken}`);
       })
   }
 });
 
 // Edit Form process
-router.put('/:id', (req, res) => {
+router.put('/:id', verifyJWT_MW, (req, res) => { 
   Idea.findOne({
     _id: req.params.id
   })
@@ -86,17 +95,17 @@ router.put('/:id', (req, res) => {
     idea.save()
       .then(idea => {
         req.flash('success_msg', 'Idea updated');
-        res.redirect('/ideas');
+        res.redirect(`/ideas/?token=${req.user.prewToken}`);
       })
   });
 });
 
 // Delete Idea
-router.delete('/:id', (req, res) => {
+router.delete('/:id', verifyJWT_MW, ( req, res) => {
   Idea.remove({_id: req.params.id})
     .then(() => {
       req.flash('success_msg', 'Idea removed');
-      res.redirect('/ideas');
+      res.redirect(`/ideas/?token=${req.user.prewToken}`);
     });
 });
 
