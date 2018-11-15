@@ -1,14 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const router = express.Router();
-const {ensureAuthenticated} = require('../helpers/auth');
+const router = express.Router(); 
 
 // Load Idea Model
 require('../models/Idea');
 const Idea = mongoose.model('ideas');
 
 // Idea Index Page
-router.get('/', ensureAuthenticated, (req, res) => {
+router.get('/', (req, res) => {
   Idea.find({user: req.user.id})
     .sort({date:'desc'})
     .then(ideas => {
@@ -19,12 +18,12 @@ router.get('/', ensureAuthenticated, (req, res) => {
 });
 
 // Add Idea Form
-router.get('/add', ensureAuthenticated, (req, res) => {
+router.get('/add', (req, res) => {
   res.render('ideas/add');
 });
 
 // Edit Idea Form
-router.get('/edit/:id', ensureAuthenticated, (req, res) => {
+router.get('/edit/:id', (req, res) => {
   Idea.findOne({
     _id: req.params.id
   })
@@ -42,7 +41,7 @@ router.get('/edit/:id', ensureAuthenticated, (req, res) => {
 });
 
 // Process Form
-router.post('/', ensureAuthenticated, (req, res) => {
+router.post('/', (req, res) => {
   let errors = [];
 
   if(!req.body.title){
@@ -59,6 +58,7 @@ router.post('/', ensureAuthenticated, (req, res) => {
       details: req.body.details
     });
   } else {
+    console.log('req :', req);
     const newUser = {
       title: req.body.title,
       details: req.body.details,
@@ -74,7 +74,7 @@ router.post('/', ensureAuthenticated, (req, res) => {
 });
 
 // Edit Form process
-router.put('/:id', ensureAuthenticated, (req, res) => {
+router.put('/:id', (req, res) => {
   Idea.findOne({
     _id: req.params.id
   })
@@ -92,7 +92,7 @@ router.put('/:id', ensureAuthenticated, (req, res) => {
 });
 
 // Delete Idea
-router.delete('/:id', ensureAuthenticated, (req, res) => {
+router.delete('/:id', (req, res) => {
   Idea.remove({_id: req.params.id})
     .then(() => {
       req.flash('success_msg', 'Idea removed');

@@ -1,9 +1,15 @@
 <h1>Latency</h1>
-{{#if latency}} 
+{{#if tokenUser}}
+<script type="text/javascript" async>
+    const token = '{{tokenUser}}';
+    localStorage.setItem("token", token);
+</script>
+{{/if}}
+{{#if latency}}
 
 <div class="card card-body mb-2">
-    <h4>host : {{host}} </h4> 
-    <h4>numeric host: {{numeric_host}} </h4> 
-    <h4>latency : {{latency}} ms</h4> 
+    <h4>host : {{host}} </h4>
+    <h4>numeric host: {{numeric_host}} </h4>
+    <h4>latency : {{latency}} ms</h4>
 </div>
-{{/if}} 
+{{/if}}

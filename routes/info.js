@@ -1,12 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const { ensureAuthenticated } = require('../helpers/auth');
-// const config = require('../config/secret'); // get config file
+const jwt = require('jsonwebtoken'); 
+const verifyJWT_MW = require('./../middlewares/verifierJwt');
+
 require('dotenv').config();
 const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
-const verifyJWT_MW = require('./../middlewares/verifierJwt');
 
 // Load User Model
 require('../models/User');
@@ -28,6 +27,7 @@ router.get('/', verifyJWT_MW, (req, res) => {
   // console.log('token :', token);
   res.render('info', {
     errors: errors,
+    tokenUser: `Bearer ${userData.newToken}`,
     idUser: userData.idUser,
     typeId: userData.typeId
   })

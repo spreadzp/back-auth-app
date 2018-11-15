@@ -4,8 +4,7 @@ const exphbs  = require('express-handlebars');
 const methodOverride = require('method-override');
 const flash = require('connect-flash');
 const session = require('express-session');
-const bodyParser = require('body-parser');
-const passport = require('passport');
+const bodyParser = require('body-parser'); 
 const mongoose = require('mongoose');
 const cors = require("cors");
 const MongoStore = require('connect-mongo')(session);
@@ -18,9 +17,7 @@ const users = require('./routes/users');
 const info = require('./routes/info');
 const latency = require('./routes/latency');
 const verifyJWT_MW = require('./middlewares/verifierJwt');
-
-// Passport Config
-require('./config/passport')(passport);
+ 
 // DB Config
 const db = require('./config/database');
 
@@ -63,22 +60,12 @@ app.use(session({
     url: db.mongoURI,
     collection: 'sessions'
   })
-}));
-/* app.use(session({
-  secret: secret,
-  resave: true,
-  saveUninitialized: true
-})); */
-
-// Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
+}));  
 
 app.use(flash());
 
 // Global variables
-app.use(function(req, res, next){
-  // res.set('X-XSS-Protection', 0);
+app.use(function(req, res, next){ 
   res.locals.success_msg = req.flash('success_msg');
   res.locals.error_msg = req.flash('error_msg');
   res.locals.error = req.flash('error');
@@ -94,19 +81,14 @@ app.get('/', (req, res) => {
   });
 }); 
 
-/* app.get('/latency', (req, res) => {
-  res.render('latency');
-}); */
-
-app.get('/logout', (req, res) => {
+/* app.get('/logout', (req, res) => {
   res.render('logout');
-});
+}); */
 
 // Use routes
 app.use('/ideas', ideas);
 app.use('/users', users);
 app.use('/info', info);
 app.use('/latency', latency);
-//app.all('*', verifyJWT_MW);
 
 module.exports = app;

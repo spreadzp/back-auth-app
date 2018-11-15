@@ -1,17 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const passport = require('passport');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
+var Redis = require('ioredis');
+var redis = new Redis({
+  port: 6379, // Redis port
+  host: '127.0.0.1', // Redis host
+  family: 4, // 4 (IPv4) or 6 (IPv6)
+  password: 'auth',
+  db: 0
+})
+var JWTR = require('jwt-redis');
+var jwtr = new JWTR(redis);
 
 require('dotenv').config();
 const verifyJWT_MW = require('./../middlewares/verifierJwt');
 const tokenSecret = process.env.TOKEN_SECRET || 'some other secret as default';
 const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'some refresh secret as default';
 const tokenLife = +process.env.TOKEN_LIFE || 600;
-const refreshTokenLife = +process.env.REFRESH_TOKEN_LIFE || 600;
-const tokenList = {}
 
 // Load User Model
 require('../models/User');
@@ -26,15 +32,6 @@ router.get('/signin', (req, res) => {
 router.get('/signup', (req, res) => {
   res.render('users/signup');
 });
-
-// Login Form POST
-/* router.post('/signin', (req, res, next) => {
-  passport.authenticate('jwt', {
-    successRedirect:'/info',
-    failureRedirect: '/users/signin',
-    failureFlash: true
-  })(req, res, next);
-}); */
 
 router.post('/signin', (req, res) => {
   console.log('req.body :', req.body);
@@ -59,7 +56,7 @@ router.post('/signin', (req, res) => {
               password: user.password
             };
 
-            jwt.sign(payload, tokenSecret, {
+            jwtr.sign(payload, tokenSecret, {
                 expiresIn: tokenLife
               },
               (err, token) => {
@@ -70,30 +67,14 @@ router.post('/signin', (req, res) => {
                       raw: err
                     });
                 }
-                jwt.sign(payload, refreshTokenSecret, {
-                    expiresIn: refreshTokenLife
-                  },
-                  (err, validRefreshToken) => {
-                    if (err) {
-                      res.status(500)
-                        .json({
-                          error: "Error signing token",
-                          raw: err
-                        });
-                    }
-                    const response = {
-                      errors: errors,
-                      idUser: user.idUser,
-                      typeId: user.typeId,
-                      tokenUser: `Bearer ${token}`,
-                      refreshToken: validRefreshToken,
-                      status: "Logged in"
-                    }
-                    tokenList[validRefreshToken] = response;
-                    res.render('info', response)
-                    // res.redirect('/info', response);
-                  }
-                )
+                const response = {
+                  errors: errors,
+                  idUser: user.idUser,
+                  typeId: user.typeId,
+                  tokenUser: `Bearer ${token}`,
+                  status: "Logged in"
+                }
+                res.render('info', response);
               });
           } else {
             errors.password = "Password is incorrect";
@@ -167,8 +148,21 @@ router.post('/signup', (req, res) => {
 // Logout User
 router.get('/logout', verifyJWT_MW, (req, res) => {
   //req.logout();
-  req.flash('success_msg', 'You are logged out');
-  res.redirect('/users/signin');
+  const tokenLogout = req.user.prewToken;
+  console.log('tokenLogout :', tokenLogout);
+  jwtr.destroy(tokenLogout, (err, decode) => {
+    if (err) {
+      res.status(500)
+        .json({
+          error: "Error signing token",
+          raw: err
+        });
+    }
+    console.log('decode :', decode);
+    req.flash('success_msg', 'You are logged out');
+    res.redirect('/users/signin');
+  })
+
 });
 
 module.exports = router;

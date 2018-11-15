@@ -57,14 +57,14 @@
     }
     $('#signForm').on('submit', function () {
       userTypeId.val(checkBoxTypeId.value);
-      console.log('@@@@', checkBoxTypeId.val(), userTypeId.val())
+      console.log('@@@@', checkBoxTypeId.val(), userTypeId.val(), checkBoxTypeId.value)
     })
     console.log("onclick=window.location=", window.location)
     const tokenFromLocalStorage = localStorage.getItem('token').split(' ');
-    function redirectInfo(path) {
-      window.location.replace(window.location.origin + `${path}/?token=${tokenFromLocalStorage[1]}`);
+    function redirectPage(path, parameter) {
+      var newPath = window.location.origin + `${path}/?token=${tokenFromLocalStorage[1]}${parameter}`;
+      window.location.replace(newPath);
     }
-
   </script>
 </body>
 
